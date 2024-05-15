@@ -1,10 +1,20 @@
 const app = require('express')();
 
-app.use(express.static('public'))
+// Socket.io setup
+const http = require('http');
+const server = http.createServer(app);
+const Server = require('socket.io');
+const io = new Server(server);
+
+app.use(express.static('public'));
 
 app.get('/', (req, res) => {
     res.sendFile(join(__dirname + '/index.html'));
 });
+
+io.on('connection', (socket) => {
+    console.log('A user has connected')
+})
 
 server.listen(8082, () => {
     console.log('server running at http://localhost:8082');
