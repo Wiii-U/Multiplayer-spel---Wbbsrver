@@ -12,8 +12,11 @@ app.get('/', (req, res) => {
     res.sendFile(join(__dirname + '/index.html'));
 });
 
+const players = {}
+
 io.on('connection', (socket) => {
     console.log('A user has connected')
+    players[socket.id]
 })
 
 server.listen(8082, () => {
