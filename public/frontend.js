@@ -14,6 +14,26 @@ const x = canvas.width / 2
 const y = canvas.height / 2
 
 const frontEndPlayers = {}
+const frontEndProjectiles = {}
+
+socket.on('updateProjectiles', (backEndProjectiles) => {
+    for (const id in backEndProjectiles) {
+        const backEndProjectile = backEndProjectiles[id]
+
+        if (!frontEndProjectiles[id]) {
+            frontEndProjectiles[id] = new Projectile({    
+                x: backEndProjectile.x,
+                y: backEndProjectile.y, 
+                radius: 5, 
+                color: 'white', 
+                velocity: backEndProjectile.velocity
+            })
+        } else {
+            frontEndProjectiles[id].x += backEndProjectiles[id].velocity.x
+            frontEndProjectiles[id].x += backEndProjectiles[id].velocity.y
+        }
+    }
+})
 
 socket.on('updatePlayers', (backEndPlayers) => {
     for (const id in backEndPlayers) {
@@ -27,12 +47,30 @@ socket.on('updatePlayers', (backEndPlayers) => {
                 color: backEndPlayer.color
             })
         } else {
-            frontEndPlayers[id].x = backEndPlayer.x
-            frontEndPlayers[id].y = backEndPlayer.y
+            if (id === socket.id) {
+                frontEndPlayers[id].x = backEndPlayer.x
+                frontEndPlayers[id].y = backEndPlayer.y
 
-            const lastBackendInputIndex = playerInputs.findIndex(input => {
-                return backEndPlayer.sequenceNumber === input.sequenceNumber
-            })
+                const lastBackendInputIndex = playerInputs.findIndex((input) => {
+                    return backEndPlayer.sequenceNumber === input.sequenceNumber
+                })
+
+                if (lastBackendInputIndex > -1) {
+                    playerInputs.splice(0, lastBackendInputIndex + 1)
+                }
+                playerInputs.forEach((input) => {
+                    frontEndPlayers[id].x += input.dx
+                    frontEndPlayers[id].y += input.dy
+                })
+            } else {
+
+                gsap.to(frontEndPlayers[id], {
+                    x: backEndPlayer.x,
+                    y: backEndPlayer.y,
+                    duration: 0.015,
+                    ease: "linear"
+                })
+            }
         }
     }
 
@@ -53,6 +91,16 @@ function animate() {
         const frontEndPlayer = frontEndPlayers[id]
         frontEndPlayer.draw()
     }
+
+    for (const id in frontEndProjectiles) {
+        const frontEndProjectile = frontEndProjectiles[id]
+        frontEndProjectile.draw()
+    }
+
+    // for (let i = frontEndProjectiles.length; i >= 0; i--) {
+    //     const frontEndProjectile = frontEndProjectiles[i]
+    //     frontEndProjectile.update()
+    // }
 }
 
 animate();
