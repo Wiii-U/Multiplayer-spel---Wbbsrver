@@ -16,21 +16,31 @@ const y = canvas.height / 2
 const frontEndPlayers = {}
 const frontEndProjectiles = {}
 
+socket.on('connect', () => {
+    socket.emit('initCanvas', {width: canvas.width, height: canvas.height})
+})
+
 socket.on('updateProjectiles', (backEndProjectiles) => {
     for (const id in backEndProjectiles) {
         const backEndProjectile = backEndProjectiles[id]
 
         if (!frontEndProjectiles[id]) {
-            frontEndProjectiles[id] = new Projectile({    
+            frontEndProjectiles[id] = new Projectile({  
                 x: backEndProjectile.x,
                 y: backEndProjectile.y, 
                 radius: 5, 
-                color: 'white', 
+                color: frontEndPlayers[backEndProjectile.playerId]?.color, 
                 velocity: backEndProjectile.velocity
             })
         } else {
             frontEndProjectiles[id].x += backEndProjectiles[id].velocity.x
             frontEndProjectiles[id].x += backEndProjectiles[id].velocity.y
+        }
+    }
+
+    for (const frontEndProjectileId in frontEndProjectiles) {
+        if (!backEndProjectiles[frontEndProjectileId]) {
+            delete frontEndProjectiles[frontEndProjectileId]
         }
     }
 })
@@ -46,6 +56,8 @@ socket.on('updatePlayers', (backEndPlayers) => {
                 radius: 10,
                 color: backEndPlayer.color
             })
+
+            document.querySelector('#playerLabels').innerHTML += `<div data-id="${id}">${id}: 0</div>`
         } else {
             if (id === socket.id) {
                 frontEndPlayers[id].x = backEndPlayer.x
@@ -77,6 +89,9 @@ socket.on('updatePlayers', (backEndPlayers) => {
     for (const id in frontEndPlayers) {
         if (!backEndPlayers[id]) {
             delete frontEndPlayers[id]
+
+            const divToDelete = document.querySelector(`div[data-id="${id}"]`)
+            divToDelete.parentNode.removeChild(divToDelete)
         }
     }
 })
