@@ -3,8 +3,6 @@ const c = canvas.getContext('2d');
 
 const socket = io();
 
-const scoreEl = document.querySelector('#scoreEl');
-
 const devicePixelRatio = window.devicePixelRatio || 1
 
 canvas.width = innerWidth * devicePixelRatio;
