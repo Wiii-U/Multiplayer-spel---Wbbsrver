@@ -19,6 +19,7 @@ const backEndPlayers = {}
 const backEndProjectiles = {}
 
 const SPEED = 10
+PROJECTILE_RADIUS = 5
 let projectileId = 0
 
 io.on('connection', (socket) => {
@@ -57,8 +58,8 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', (reason) => {
         console.log(reason)
-        delete backEndPlayers[socket.id]
         io.emit('updatePlayers', backEndPlayers)
+        delete backEndPlayers[socket.id]
     })
 
     socket.on('keydown', ({keycode, sequenceNumber}) => {
